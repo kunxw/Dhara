@@ -17,6 +17,7 @@
 #include "../include/global.h"
 #include "../include/overland.h"
 #include "../include/subsurface.h"
+#include "../include/litter.h"
 #include "../include/devconst.h"
 
 
@@ -224,6 +225,7 @@ extern "C" \
 void CopyDataToDevice(ProjectClass *project, TimeForcingClass *timeforcings,
                       OverlandFlowClass *overland_host, OverlandFlowClass *overland_dev,
                       SubsurfaceFlowClass *subsurface_host, SubsurfaceFlowClass *subsurface_dev,
+                      LitterSnowClass *litter_host, LitterSnowClass *litter_dev, SwitchClass *switches,
                       int3 globsize)
 {
     int sizexy  = globsize.x * globsize.y;
@@ -374,7 +376,8 @@ void CopyDataToDevice(ProjectClass *project, TimeForcingClass *timeforcings,
 extern "C" \
 void RunCoupledFlowModel(TimeForcingClass *timeforcings, OverlandFlowClass *overland_host,
                          OverlandFlowClass *overland_dev, SubsurfaceFlowClass *subsurface_host,
-                         SubsurfaceFlowClass *subsurface_dev, FileNameClass *files,
+                         SubsurfaceFlowClass *subsurface_dev, LitterSnowClass * litter_host, 
+                         LitterSnowClass * litter_dev, FileNameClass *files,
                          ProjectClass *project, ForcingClass * &forcings, SwitchClass *switches,
                          ConstantClass *constants, CanopyClass *canopies, SoilClass *soils,
                          RadiationClass *radiation, PhotosynthesisClass *photosynthesis,
@@ -446,22 +449,22 @@ void RunCoupledFlowModel(TimeForcingClass *timeforcings, OverlandFlowClass *over
 
         // Flow3D model in device. Run on root/master process only.
         if (isroot)
-        {
-            // insert litter energy balance and subsurface heat model here
-            
+        {         
             SubsurfaceFlowModel(timeforcings, overland_host, overland_dev, subsurface_host,
-                                subsurface_dev, a3d_cusp, psinp1mp1_cusp, rhs3d_cusp, id3d,
+                                subsurface_dev, switches, a3d_cusp, psinp1mp1_cusp, rhs3d_cusp, id3d,
                                 deltam_cusp, maxError, 
                                 quflux_thrust, qdflux_thrust, qwflux_thrust, qeflux_thrust, qsflux_thrust, qnflux_thrust,
                                 dtheta_thrust, transp_thrust, evapo_thrust, ssflux_thrust,
                                 rank, procsize, globsize, t, num_steps);
             
             // litter water storage
-            
+            if(switches->Litter) {
+                LitterStorageModel(timeforcings, overland_dev, subsurface_dev, litter_dev, rank, 
+                               procsize, globsize, t, num_steps);    // what is rank and stuff for?
+            }
             
             OverlandFlowModel(timeforcings, overland_dev, subsurface_dev, a2d_cusp, we_out_cusp,
-                              rhs2d_cusp, id2d, rank, procsize, globsize, t, num_steps);
-
+                              rhs2d_cusp, id2d, rank, procsize, globsize, t, num_steps); // what is rank and stuff for?
 
             if (project->savestat)
             {            
@@ -470,7 +473,7 @@ void RunCoupledFlowModel(TimeForcingClass *timeforcings, OverlandFlowClass *over
             }
 
             // Save 2D and 3D results.
-            SaveModelResults(project, overland_host, overland_dev, subsurface_host, subsurface_dev,             globsize, t);
+            SaveModelResults(project, overland_host, overland_dev, subsurface_host, subsurface_dev, globsize, t);
         }
     }
 

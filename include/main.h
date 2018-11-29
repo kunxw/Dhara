@@ -112,8 +112,8 @@ void LoadCanopyRootDistributions(ProjectClass *project, CanopyClass *canopies,
 void LoadForcingData(FileNameClass *files, CanopyClass *canopies, TimeForcingClass *timeforcings,
                      int rank, int procsize, int num_steps);
 
-void LoadFlowModelConfig(ProjectClass *project, FileNameClass *files, OverlandFlowClass *overland,
-                         SubsurfaceFlowClass *subsurface );
+void LoadFlowModelConfig(ProjectClass *project, FileNameClass *files, OverlandFlowClass *overland, 
+                        SubsurfaceFlowClass *subsurface, LitterSnowClass *litter, SwitchClass *switches);
 
 void LoadTopography(FileNameClass *files, OverlandFlowClass *overland, int rank, int procsize);
 
@@ -123,7 +123,8 @@ void GetFileInfo(const char *file_name, const char *var_name, int ndims, int *di
 
 void SetFlowModelConditions(TimeForcingClass *timeforcings, FileNameClass *files, 
                             OverlandFlowClass *overland, SubsurfaceFlowClass * &subsurface, 
-                            int num_steps, int rank, int procsize, int3 globsize);
+                            LitterSnowClass * &litter, SwitchClass *switches,
+                             int num_steps, int rank, int procsize, int3 globsize);
 
 void SetMPIGPUMapping(mpiClass *mpiobj, SubsurfaceFlowClass * &subsurface, int procsize,
                       int3 globsize, int2 topolsize);
@@ -161,7 +162,8 @@ void SaveModelResults(ProjectClass *project, OverlandFlowClass *overland_host,
 
 void RunCoupledFlowModel(TimeForcingClass *timeforcings, OverlandFlowClass *overland_host,
                          OverlandFlowClass *overland_dev, SubsurfaceFlowClass *subsurface_host,
-                         SubsurfaceFlowClass *subsurface_dev, FileNameClass *files,
+                         SubsurfaceFlowClass *subsurface_dev, LitterSnowClass *litter_host, 
+                         LitterSnowClass *litter_dev, FileNameClass *files,
                          ProjectClass *project, ForcingClass * &forcings, SwitchClass *switches,
                          ConstantClass *constants, CanopyClass *canopies, SoilClass *soils,
                          RadiationClass *radiation, PhotosynthesisClass *photosynthesis,
@@ -180,7 +182,7 @@ void CopyConstantToDevice(ProjectClass *project, OverlandFlowClass * &overland,
 void CopyDataToDevice(ProjectClass *project, TimeForcingClass *timeforcings,
                       OverlandFlowClass *overland_host, OverlandFlowClass *overland_dev,
                       SubsurfaceFlowClass *subsurface_host, SubsurfaceFlowClass *subsurface_dev,
-                      int3 globsize);
+                      LitterSnowClass *litter_host, LitterSnowClass *litter_dev, SwitchClass *switches,int3 globsize);
 
 void  SaveResultEntirePeriod(ProjectClass *project, CanopyClass *canopies,
                              SubsurfaceFlowClass *subsurface_host, OutputClass *outmlcan,

@@ -252,6 +252,7 @@
         int Plotting;
         int ElevatedCO2;
         int LWequation;               // Longwave equation 1: without atmospheric correction, 2: with  
+        int Litter;
     };
 #endif
 

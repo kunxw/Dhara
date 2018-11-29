@@ -12,7 +12,7 @@ __global__ void WaterElevationOverland(double *waterelev, double *waterdepth, do
 									   int size);
 
 __global__ void EstimateFluxes(double *ph, double *hpoten, double *qcapa, double *psinp1m, 
-							   double *knp1m, double *ppt, double *et, double *ksat, int3 globsize);
+							   double *knp1m, double *ppt, double *et, double *ksat, int run_litter, int3 globsize);
 
 __global__ void IdentifyTopBoundary(double *hpoten, double *qcapa, int *topbc, double *topqflux, 
 									double *psinp1m, double *Psi_top, 

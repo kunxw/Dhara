@@ -107,7 +107,8 @@ __global__ void LitterWaterBalance(double *zliqsl, double *ph,  double *dzlit,  
 }
 
 void LitterStorageModel(TimeForcingClass * &timeforcings, OverlandFlowClass * &overland_dev,
-                       SubsurfaceFlowClass * &subsurface_dev, LitterSnowClass * &litter_dev, int rank, int procsize, int3 globsize, int t, int num_steps) 
+                       SubsurfaceFlowClass * &subsurface_dev, LitterSnowClass * &litter_dev, 
+                       int rank, int procsize, int3 globsize, int t, int num_steps) 
 {
     int sizexy  = globsize.x * globsize.y;
     

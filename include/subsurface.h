@@ -29,7 +29,7 @@ void GatherFluxesDomain(ProjectClass *project, VerticalCanopyClass *vertcanopies
 
 void SubsurfaceFlowModel(TimeForcingClass * &timeforcings, OverlandFlowClass * &overland_host,
                          OverlandFlowClass * &overland_dev, SubsurfaceFlowClass * &subsurface_host,
-                         SubsurfaceFlowClass * &subsurface_dev, cuspdev_diamat &a3d_cusp,
+                         SubsurfaceFlowClass * &subsurface_dev, SwitchClass * &switches, cuspdev_diamat &a3d_cusp,
                          cuspdev_1d &psinp1mp1_cusp, cuspdev_1d &rhs3d_cusp, cuspdev_idoper &id3d,
                          cuspdev_1d &deltam_cusp, thrustdev_iter &maxError, 
                          thrustdev &quflux_thrust, thrustdev &qdflux_thrust, thrustdev &qwflux_thrust, thrustdev &qeflux_thrust, thrustdev &qsflux_thrust, thrustdev &qnflux_thrust,

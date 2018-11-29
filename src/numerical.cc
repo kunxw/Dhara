@@ -42,6 +42,7 @@ void AllocateMemoryFlowModel(TimeForcingClass *timeforcings,
                              SubsurfaceFlowClass * &subsurface_dev,
                              LitterSnowClass * &litter_host,
                              LitterSnowClass * &litter_dev,
+                             SwitchClass * &switches,
                              int procsize, int3 globsize, int num_steps)
 {
     int sizez   = globsize.z;
@@ -92,12 +93,6 @@ void AllocateMemoryFlowModel(TimeForcingClass *timeforcings,
     subsurface_host->bcs        = new int[sizexz];
     subsurface_host->procmap    = new int[sizexy];
     subsurface_host->type       = new int[procsize];
-    
-    litter_host->dzlit       = new double[sizexz];  
-    litter_host->zliqsl      = new double[sizexz];
-    litter_host->LEsl        = new double[sizexz];
-    litter_host->Esl         = new double[sizexz];
-    litter_host->drainlitter = new double[sizexz];
 
     /* 2D temporal variables. */
     subsurface_host->psi_col    = new double[num_steps*sizez];
@@ -123,6 +118,17 @@ void AllocateMemoryFlowModel(TimeForcingClass *timeforcings,
 
     /* 1D temporal variable. */
     subsurface_host->mb_subsurfaceW = new double[num_steps];
+    
+    /* Optional modules*/
+    if (switches->Litter) {
+        litter_host->dzlit       = new double[sizexz];  
+        litter_host->zliqsl      = new double[sizexz];
+        litter_host->LEsl        = new double[sizexz];
+        litter_host->Esl         = new double[sizexz];
+        litter_host->drainlitter = new double[sizexz];
+        printf("\t Flow model - allocating litter host memory . . . . . . completed! \n");
+    }
+    
 
     /* If reach this point, print out info. */
     printf("\t Flow model - host memory . . . . . . . . . . . . . . . completed! \n");
@@ -178,12 +184,6 @@ void AllocateMemoryFlowModel(TimeForcingClass *timeforcings,
     SafeCudaCall(cudaMalloc((void**)&subsurface_dev->ppt_root   , procsize*sizeof(double)));
     SafeCudaCall(cudaMalloc((void**)&subsurface_dev->E_soil_root, procsize*sizeof(double)));
     SafeCudaCall(cudaMalloc((void**)&subsurface_dev->rda        , procsize*sizez*sizeof(double)));
-      
-    SafeCudaCall(cudaMalloc((void**)&litter_dev->dzlit      , sizeyz*sizeof(double)));
-    SafeCudaCall(cudaMalloc((void**)&litter_dev->zliqsl     , sizexz*sizeof(double)));
-    SafeCudaCall(cudaMalloc((void**)&litter_dev->LEsl       , sizexz*sizeof(double)));
-    SafeCudaCall(cudaMalloc((void**)&litter_dev->Esl        , sizexz*sizeof(double)));
-    SafeCudaCall(cudaMalloc((void**)&litter_dev->drainlitter, sizexz*sizeof(double)));
 
     /* 3D spatial variables. */
     SafeCudaCall(cudaMalloc((void**)&subsurface_dev->a3d      , 7*sizexyz*sizeof(double)));
@@ -200,6 +200,16 @@ void AllocateMemoryFlowModel(TimeForcingClass *timeforcings,
     SafeCudaCall(cudaMalloc((void**)&subsurface_dev->thetanp1m  , sizexyz*sizeof(double)));
     SafeCudaCall(cudaMalloc((void**)&subsurface_dev->thetanp1mp1, sizexyz*sizeof(double)));
     SafeCudaCall(cudaMalloc((void**)&subsurface_dev->thetaout   , sizexyz*sizeof(double)));
+    
+    if (switches->Litter) {
+        SafeCudaCall(cudaMalloc((void**)&litter_dev->dzlit      , sizeyz*sizeof(double)));
+        SafeCudaCall(cudaMalloc((void**)&litter_dev->zliqsl     , sizexz*sizeof(double)));
+        SafeCudaCall(cudaMalloc((void**)&litter_dev->LEsl       , sizexz*sizeof(double)));
+        SafeCudaCall(cudaMalloc((void**)&litter_dev->Esl        , sizexz*sizeof(double)));
+        SafeCudaCall(cudaMalloc((void**)&litter_dev->drainlitter, sizexz*sizeof(double)));
+        printf("\t Flow model - allocating litter device memory . . . . . completed! \n");
+    }
+    
 
     /* If reach this point, print out info. */
     printf("\t Flow model - device memory . . . . . . . . . . . . . . completed! \n");
@@ -256,7 +266,7 @@ void AllocateMemoryForcing(TimeForcingClass *timeforcings, int rank, int procsiz
  */
 void FreeHostMemory(TimeForcingClass *timeforcings, ForcingClass *forcings,
                     OverlandFlowClass *overland, SubsurfaceFlowClass *subsurface, 
-                    LitterSnowClass * litter, SwitchClass *switches, ConstantClass *constants,
+                    LitterSnowClass *litter, SwitchClass *switches, ConstantClass *constants,
                     CanopyClass *canopies, SoilClass *soils,
                     RadiationClass *radiation, PhotosynthesisClass *photosynthesis,
                     RespirationClass *respiration, StomaConductClass *stomaconduct,
@@ -266,7 +276,9 @@ void FreeHostMemory(TimeForcingClass *timeforcings, ForcingClass *forcings,
     {
         free(overland);
         free(subsurface);
-        free(litter);
+        if(switches->Litter) {
+            free(litter);
+        }
     }
     free(timeforcings);
     free(forcings);
@@ -292,7 +304,7 @@ void FreeHostMemory(TimeForcingClass *timeforcings, ForcingClass *forcings,
  * @param[in]  rank        Global rank of the current MPI process
  * @param[in]  procsize    Total number of MPI processes available
  */
-void FreeDeviceMemory(OverlandFlowClass *overland, SubsurfaceFlowClass *subsurface, LitterSnowClass * litter,
+void FreeDeviceMemory(OverlandFlowClass *overland, SubsurfaceFlowClass *subsurface, LitterSnowClass * litter, SwitchClass * switches,
                       int rank, int procsize)
 {
     if (rank == MPI_MASTER_RANK)
@@ -353,11 +365,13 @@ void FreeDeviceMemory(OverlandFlowClass *overland, SubsurfaceFlowClass *subsurfa
         ///////////////////////////
         // Litter                //
         ///////////////////////////
-        SafeCudaCall(cudaFree(litter->dzlit));
-        SafeCudaCall(cudaFree(litter->zliqsl));
-        SafeCudaCall(cudaFree(litter->LEsl));
-        SafeCudaCall(cudaFree(litter->Esl));
-        SafeCudaCall(cudaFree(litter->drainlitter));
+        if(switches->Litter) {
+            SafeCudaCall(cudaFree(litter->dzlit));
+            SafeCudaCall(cudaFree(litter->zliqsl));
+            SafeCudaCall(cudaFree(litter->LEsl));
+            SafeCudaCall(cudaFree(litter->Esl));
+            SafeCudaCall(cudaFree(litter->drainlitter));
+        }
     }
 }
 
@@ -604,14 +618,13 @@ void NumericalModelKernels(int rank, int procsize, FileNameClass *files, Project
     // Set up flow model on device by master.
     if (rank == MPI_MASTER_RANK)
     {
-        AllocateMemoryFlowModel(timeforcings, olf_h, olf_d, ssf_h, ssf_d, litter_h, litter_d, procsize, globsize,
-                                num_steps);
+        AllocateMemoryFlowModel(timeforcings, olf_h, olf_d, ssf_h, ssf_d, litter_h, litter_d, switches, procsize, globsize, num_steps);
         LoadTopography(files, olf_h, rank, procsize);
-        LoadFlowModelConfig(project, files, olf_h, ssf_h);
-        SetFlowModelConditions(timeforcings, files, olf_h, ssf_h, num_steps, rank, procsize,
+        LoadFlowModelConfig(project, files, olf_h, ssf_h, litter_h, switches);
+        SetFlowModelConditions(timeforcings, files, olf_h, ssf_h, litter_h, switches, num_steps, rank, procsize,
                                globsize);
         SetMPIGPUMapping(mpiobj, ssf_h, procsize, globsize, topolsize);
-        CopyDataToDevice(project, timeforcings, olf_h, olf_d, ssf_h, ssf_d, globsize);
+        CopyDataToDevice(project, timeforcings, olf_h, olf_d, ssf_h, ssf_d, litter_h, litter_d, switches, globsize);
     }
     MPI_Barrier(cartComm);     // sync all process
 
@@ -623,7 +636,7 @@ void NumericalModelKernels(int rank, int procsize, FileNameClass *files, Project
      * All models are run within this function.
      * Time loop and export funcs are inside as well.
      */
-    RunCoupledFlowModel(timeforcings, olf_h, olf_d, ssf_h, ssf_d, files, project, mforcings,
+    RunCoupledFlowModel(timeforcings, olf_h, olf_d, ssf_h, ssf_d, litter_h, litter_d, files, project, mforcings,
                         switches, constants, canopies, soils, radiation, photosynthesis,
                         respiration, stomaconduct,microenviron, vertcanopies, vertsoils,
                         eigencanopies, eigensoils, outmlcan, rank, procsize, globsize, domsize,
@@ -634,6 +647,6 @@ void NumericalModelKernels(int rank, int procsize, FileNameClass *files, Project
                    radiation, photosynthesis, respiration, stomaconduct, microenviron, rank,
                    procsize);
 
-    FreeDeviceMemory(olf_d, ssf_d, litter_h, rank, procsize);
+    FreeDeviceMemory(olf_d, ssf_d, litter_d, switches, rank, procsize);
     MPI_Barrier(cartComm);     // sync all process
 }

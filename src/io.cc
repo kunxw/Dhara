@@ -234,7 +234,7 @@ void LoadConfigMLCanModel(ProjectClass *project, FileNameClass *files, SwitchCla
  * @param      subsurface  Subsurface flow class
  */
 void LoadFlowModelConfig(ProjectClass *project, FileNameClass *files, OverlandFlowClass *overland,
-                         SubsurfaceFlowClass *subsurface)
+                         SubsurfaceFlowClass *subsurface, LitterSnowClass *litter, SwitchClass *switches)
 {
     // Parsing configuration file
     ParserConfigFile(files->config);

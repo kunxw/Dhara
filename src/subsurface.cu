@@ -685,7 +685,7 @@ void GatherFluxesDomain(ProjectClass *project, VerticalCanopyClass *vertcanopies
  */
 void SubsurfaceFlowModel(TimeForcingClass * &timeforcings, OverlandFlowClass * &overland_host,
                          OverlandFlowClass * &overland_dev, SubsurfaceFlowClass * &subsurface_host,
-                         SubsurfaceFlowClass * &subsurface_dev, cuspdev_diamat &a3d_cusp,
+                         SubsurfaceFlowClass * &subsurface_dev, SwitchClass * &switches,cuspdev_diamat &a3d_cusp,
                          cuspdev_1d &psinp1mp1_cusp, cuspdev_1d &rhs3d_cusp, cuspdev_idoper &id3d,
                          cuspdev_1d &deltam_cusp, thrustdev_iter &maxError, 
                          thrustdev &quflux_thrust, thrustdev &qdflux_thrust, thrustdev &qwflux_thrust, thrustdev &qeflux_thrust, thrustdev &qsflux_thrust, thrustdev &qnflux_thrust,
@@ -709,7 +709,7 @@ void SubsurfaceFlowModel(TimeForcingClass * &timeforcings, OverlandFlowClass * &
 
     EstimateFluxes<<<TSZ,BSZ>>>(overland_dev->ph, overland_dev->hpoten, overland_dev->qcapa,
                   subsurface_dev->psinp1m, subsurface_dev->knp1m, subsurface_dev->ppt_ground, 
-                  subsurface_dev->E_soil, subsurface_dev->ksat, globsize);
+                  subsurface_dev->E_soil, subsurface_dev->ksat, switches->Litter, globsize);
     cudaCheckError("EstimateFluxes");
 
     while (runflag == 0 && niter < maxiter)

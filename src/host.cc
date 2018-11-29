@@ -179,7 +179,8 @@ void SetBoundaryConditionsHost(TimeForcingClass *timeforcings, FileNameClass *fi
  */
 void SetFlowModelConditions(TimeForcingClass *timeforcings, FileNameClass *files,
                             OverlandFlowClass *overland, SubsurfaceFlowClass * &subsurface,
-                            int num_steps, int rank, int procsize, int3 globsize)
+                            LitterSnowClass * &litter, SwitchClass * switches,
+                             int num_steps, int rank, int procsize, int3 globsize)
 {
     SetInitialConditionsHost(timeforcings, files, overland, subsurface, num_steps, rank, procsize,
                              globsize);
