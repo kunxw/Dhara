@@ -134,11 +134,11 @@
     class LitterSnowClass
     {
         public:
-        double *dzlit_mm;    // [mm] Thickness of litter layer
-        double *zliqsl;      // [mm] liquid water content in snow-litter layer
+        double *dzlit;       // [m] Thickness of litter layer
+        double *zliqsl;      // [m] liquid water content in snow-litter layer
         double *LEsl;        // [W/m^2] Latent Heat from snow-litter layer
         double *Esl;         // [mm / s] Evaporation from snow-litter layer 
-        double *drainlitter; // [mm] Water that drains into soil from litter 
+        double *drainlitter; // [m] Water that drains into soil from litter 
         
         double thetals;      // [] Litter porosity Vv/Vt
         double thetafc;      // [] Litter moisture at field capacity

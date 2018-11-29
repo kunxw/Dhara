@@ -178,7 +178,8 @@ void EstimateFluxes(double *ph, double *hpoten, double *qcapa, double *psinp1m, 
 
     while (tid < sizexy) {
         //hpoten[tid] = ph[tid] + ppt[tid] + et;
-        hpoten[tid] = ph[tid] + ppt[tid]/1000 - et[tid] * sec_p_mm2dt_p_m * dt;      // [m]
+        //hpoten[tid] = ph[tid] + ppt[tid]/1000 - et[tid] * sec_p_mm2dt_p_m * dt;      // [m]
+        hpoten[tid] = ph[tid] - et[tid] * sec_p_mm2dt_p_m * dt;      // [m] moved ppt to litter
         qcapa[tid] = -knp1m[tid]*((psinp1m[tid]-hpoten[tid]-0.5*dz) / (0.5*dz));
 
         if (ph[tid] / dt > ksat[tid]) {

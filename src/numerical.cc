@@ -93,7 +93,7 @@ void AllocateMemoryFlowModel(TimeForcingClass *timeforcings,
     subsurface_host->procmap    = new int[sizexy];
     subsurface_host->type       = new int[procsize];
     
-    litter_host->dzlit_mm    = new double[sizexz];  
+    litter_host->dzlit       = new double[sizexz];  
     litter_host->zliqsl      = new double[sizexz];
     litter_host->LEsl        = new double[sizexz];
     litter_host->Esl         = new double[sizexz];
@@ -179,7 +179,7 @@ void AllocateMemoryFlowModel(TimeForcingClass *timeforcings,
     SafeCudaCall(cudaMalloc((void**)&subsurface_dev->E_soil_root, procsize*sizeof(double)));
     SafeCudaCall(cudaMalloc((void**)&subsurface_dev->rda        , procsize*sizez*sizeof(double)));
       
-    SafeCudaCall(cudaMalloc((void**)&litter_dev->dzlit_mm   , sizeyz*sizeof(double)));
+    SafeCudaCall(cudaMalloc((void**)&litter_dev->dzlit      , sizeyz*sizeof(double)));
     SafeCudaCall(cudaMalloc((void**)&litter_dev->zliqsl     , sizexz*sizeof(double)));
     SafeCudaCall(cudaMalloc((void**)&litter_dev->LEsl       , sizexz*sizeof(double)));
     SafeCudaCall(cudaMalloc((void**)&litter_dev->Esl        , sizexz*sizeof(double)));
@@ -353,7 +353,7 @@ void FreeDeviceMemory(OverlandFlowClass *overland, SubsurfaceFlowClass *subsurfa
         ///////////////////////////
         // Litter                //
         ///////////////////////////
-        SafeCudaCall(cudaFree(litter->dzlit_mm));
+        SafeCudaCall(cudaFree(litter->dzlit));
         SafeCudaCall(cudaFree(litter->zliqsl));
         SafeCudaCall(cudaFree(litter->LEsl));
         SafeCudaCall(cudaFree(litter->Esl));
