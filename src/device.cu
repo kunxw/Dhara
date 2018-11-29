@@ -447,13 +447,18 @@ void RunCoupledFlowModel(TimeForcingClass *timeforcings, OverlandFlowClass *over
         // Flow3D model in device. Run on root/master process only.
         if (isroot)
         {
+            // insert litter energy balance and subsurface heat model here
+            
             SubsurfaceFlowModel(timeforcings, overland_host, overland_dev, subsurface_host,
                                 subsurface_dev, a3d_cusp, psinp1mp1_cusp, rhs3d_cusp, id3d,
                                 deltam_cusp, maxError, 
                                 quflux_thrust, qdflux_thrust, qwflux_thrust, qeflux_thrust, qsflux_thrust, qnflux_thrust,
                                 dtheta_thrust, transp_thrust, evapo_thrust, ssflux_thrust,
                                 rank, procsize, globsize, t, num_steps);
-
+            
+            // litter water storage
+            
+            
             OverlandFlowModel(timeforcings, overland_dev, subsurface_dev, a2d_cusp, we_out_cusp,
                               rhs2d_cusp, id2d, rank, procsize, globsize, t, num_steps);
 

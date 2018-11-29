@@ -129,6 +129,25 @@
     };
 #endif
 
+#ifndef LITTERSNOWCLASS_H
+#define LITTERSNOWCLASS_H
+    class LitterSnowClass
+    {
+        public:
+        double *dzlit_mm;    // [mm] Thickness of litter layer
+        double *zliqsl;      // [mm] liquid water content in snow-litter layer
+        double *LEsl;        // [W/m^2] Latent Heat from snow-litter layer
+        double *Esl;         // [mm / s] Evaporation from snow-litter layer 
+        double *drainlitter; // [mm] Water that drains into soil from litter 
+        
+        double thetals;      // [] Litter porosity Vv/Vt
+        double thetafc;      // [] Litter moisture at field capacity
+        double km;           // parameter to compute drainage from litter
+        double bm;           // parameter to compute drainage from litter
+        double dt;
+    };
+#endif
+
 
 #ifndef SUBSURFACEFLOWCLASS_H
 #define SUBSURFACEFLOWCLASS_H
@@ -232,7 +251,7 @@
         int SoilHeat;
         int Plotting;
         int ElevatedCO2;
-        int LWequation;               // Longwave equation 1: without atmospheric correction, 2: with
+        int LWequation;               // Longwave equation 1: without atmospheric correction, 2: with  
     };
 #endif
 
