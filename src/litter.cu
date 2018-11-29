@@ -15,6 +15,11 @@
 #include "../include/devconst.h"
 #include "../include/global.h"
 
+__device__ double maxcomplsm (double a, double b)
+{
+    return (a < b) ? b : a;
+}
+
 /**
  * @brief      { calculate drainage of water from litter to soil }
  *
@@ -84,7 +89,7 @@ __global__ void LitterWaterBalance(double *zliqsl, double *ph,  double *dzlit_mm
     {
         double zliqsl_new = zliqsl[tid] + (ppt[tid] - drainlitter[tid] - Esl[tid] * dt);  // [mm liq]    
         if (zliqsl_new < 0) {   // check if negative water content
-            drainlitter = maxcomp(drainlitter - (0 - zliqsl_new),0); // [mm liq]
+            drainlitter[tid] = maxcomplsm((drainlitter[tid] - (0 - zliqsl_new)), 0.0); // [mm liq]
             zliqsl_new = 0;   // [mm liq]
         }
         if ((zliqsl_new / dzlit_mm[tid]) > thetals) {   // check if over saturated
@@ -106,6 +111,7 @@ void LitterStorageModel(TimeForcingClass * &timeforcings, OverlandFlowClass * &o
 {
     int sizexy  = globsize.x * globsize.y;
     
+    /* 
     // overland_dev->ph       // Ponding height [L] used in subsurface
     overland_dev->waterdepth // ponding height used in overland
     subsurface_dev->ppt_ground 
@@ -114,7 +120,8 @@ void LitterStorageModel(TimeForcingClass * &timeforcings, OverlandFlowClass * &o
     
     // calculate litter ET in Canopy model, pass to GPU like soilE
     Esl_liq = LEsl / (Lv_kg) * (1000/rho_liq);   //[mm liq / s] Evaporation From Sow-Litter Pack 
-    Esl = Esl_liq;
+    Esl = Esl_liq; 
+    */
     
     // get drainage amount and resulting ponding 
     LitterDrainage<<<TSZ,BSZ>>>(litter_dev->zliqsl, overland_dev->waterdepth, litter_dev->dzlit_mm, 
