@@ -332,6 +332,22 @@ void CopyDataToDevice(ProjectClass *project, TimeForcingClass *timeforcings,
     SafeCudaCall( cudaMemcpy(subsurface_dev->psinp1m, subsurface_dev->psin,
             sizexyz*sizeof(double), cudaMemcpyDeviceToDevice) );
 
+    ///////////////////////////////////////
+    // Litters Snow model                //
+    ///////////////////////////////////////
+    if(switches->Litter) {
+        printf("\nCOPYING LITTER DATA TO DEVICE");
+        SafeCudaCall( cudaMemcpy(litter_dev->dzlit, litter_host->dzlit,
+            sizexy*sizeof(double), cudaMemcpyHostToDevice) );
+        SafeCudaCall( cudaMemcpy(litter_dev->zliqsl, litter_host->zliqsl,
+            sizexy*sizeof(double), cudaMemcpyHostToDevice) );
+        SafeCudaCall( cudaMemcpy(litter_dev->LEsl, litter_host->LEsl,
+            sizexy*sizeof(double), cudaMemcpyHostToDevice) );
+        SafeCudaCall( cudaMemcpy(litter_dev->Esl, litter_host->Esl,
+            sizexy*sizeof(double), cudaMemcpyHostToDevice) );
+        SafeCudaCall( cudaMemcpy(litter_dev->drainlitter, litter_host->drainlitter,
+            sizexy*sizeof(double), cudaMemcpyHostToDevice) );
+    }
     // If reach this point, print out info
     printf(" . . . . . . . . . . . . . . . . . . . . .completed! \n");
     printf("------------------------- \n");

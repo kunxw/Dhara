@@ -139,3 +139,34 @@ void LitterStorageModel(TimeForcingClass * &timeforcings, OverlandFlowClass * &o
     SafeCudaCall( cudaMemcpy(overland_dev->ph, overland_dev->waterdepth, sizexy*sizeof(double),
             cudaMemcpyDeviceToDevice) );
 }
+
+void GatherLitterFluxes(ProjectClass *project, VerticalSoilClass *vertsoils, LitterSnowClass *litter_host, 
+                        LitterSnowClass *litter_dev, int rank, int procsize, int3 globsize,
+                        int3 domsize, int2 topolsize, int2 topolindex, MPI_Comm *cartComm)
+{
+    int isroot = rank == MPI_MASTER_RANK;
+
+    // MPI_Gather(vertcanopies->TR_can, 1, MPI_DOUBLE, subsurface_host->TR_root, 1, MPI_DOUBLE, 0, *cartComm);
+    // MPI_Gather(vertsoils->ppt_ground, 1, MPI_DOUBLE, subsurface_host->ppt_root, 1, MPI_DOUBLE, 0, *cartComm);
+    // MPI_Gather(vertsoils->E_soil, 1, MPI_DOUBLE, subsurface_host->E_soil_root, 1, MPI_DOUBLE, 0, *cartComm);
+
+    // if (isroot)
+    // {
+        // SafeCudaCall( cudaMemcpy(subsurface_dev->TR_root, subsurface_host->TR_root, 
+                      // procsize*sizeof(double), cudaMemcpyHostToDevice) );
+        // SendFluxDataToGrids<<<TSZ,BSZ>>>(subsurface_dev->TR, subsurface_dev->TR_root,
+                                         // subsurface_dev->procmap, globsize);
+
+        // SafeCudaCall( cudaMemcpy(subsurface_dev->ppt_root, subsurface_host->ppt_root, 
+                      // procsize*sizeof(double), cudaMemcpyHostToDevice) );        
+        // SendFluxDataToGrids<<<TSZ,BSZ>>>(subsurface_dev->ppt_ground, subsurface_dev->ppt_root,
+                                         // subsurface_dev->procmap, globsize);
+
+        // SafeCudaCall( cudaMemcpy(subsurface_dev->E_soil_root, subsurface_host->E_soil_root, 
+                      // procsize*sizeof(double), cudaMemcpyHostToDevice) );        
+        // SendFluxDataToGrids<<<TSZ,BSZ>>>(subsurface_dev->E_soil, subsurface_dev->E_soil_root,
+                                         // subsurface_dev->procmap, globsize);
+        // cudaCheckError("SendFluxDataToGrids");
+    // }
+
+}
