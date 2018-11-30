@@ -248,6 +248,14 @@
         double *krad;
         double *kax;
         double *rpp;
+        
+        // temp litter variables
+        double *LE_sl;	// Snow-litter layer
+        double *H_sl;
+        double *E_sl;
+        double *T_sl;
+        
+        
         VerticalSoilClass (int size)
         {
             rpp_wgt        = new double[1];
@@ -292,6 +300,12 @@
             krad           = new double[size];
             kax            = new double[size];
             rpp            = new double[size];
+            
+            LE_sl          = new double[1];
+            H_sl           = new double[1];
+            E_sl           = new double[1];
+            T_sl           = new double[1];
+            
         };
     };
 #endif

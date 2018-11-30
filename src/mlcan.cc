@@ -2371,9 +2371,21 @@ void CanopyModel(ProjectClass *project, SwitchClass *Switches, ConstantClass *co
                     sunlit, t);
         }
         Fc_soil = Ro * pow(Q10, (Tsoil - 10)/10);
-
-        Soil_Surface_Fluxes(vertcanopies, canopies, vertsoils, soils, radiation, constants,
-                &T_surf, &H_soil, &LE_soil, &G, &RH_soil, &LWups);
+        
+        if (Switches->Litter) {
+			// cout << "in litter condition" << endl;
+			// Soil_Surface_Fluxes_Litter(Switches, Forcing, vertcanopies, canopies, vertsoils, soils, radiation,        constants, &H_soil, &H_sl, &LE_soil, &LE_sl, &G, &RH_soil);
+            Soil_Surface_Fluxes(vertcanopies, canopies, vertsoils, soils, radiation, constants,
+                    &T_surf, &H_soil, &LE_soil, &G, &RH_soil, &LWups);
+                    *vertsoils->Fc_soil = Fc_soil;
+            *vertsoils->T_sl = T_surf;
+            *vertsoils->LE_sl = LE_soil;
+            *vertsoils->H_sl = H_soil;
+            *vertsoils->E_sl = LE_soil / constants->Lv_g;
+		} else {
+            Soil_Surface_Fluxes(vertcanopies, canopies, vertsoils, soils, radiation, constants,
+                    &T_surf, &H_soil, &LE_soil, &G, &RH_soil, &LWups);
+        }
 
         *vertsoils->Fc_soil = Fc_soil;
         *vertsoils->T_surf = T_surf;
