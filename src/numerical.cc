@@ -126,6 +126,8 @@ void AllocateMemoryFlowModel(TimeForcingClass *timeforcings,
         litter_host->LEsl        = new double[sizexz];
         litter_host->Esl         = new double[sizexz];
         litter_host->drainlitter = new double[sizexz];
+        
+        litter_host->Esl_root= new double[procsize];
         printf("\t Flow model - allocating litter host memory . . . . . . completed! \n");
     }
     
@@ -207,9 +209,10 @@ void AllocateMemoryFlowModel(TimeForcingClass *timeforcings,
         SafeCudaCall(cudaMalloc((void**)&litter_dev->LEsl       , sizexz*sizeof(double)));
         SafeCudaCall(cudaMalloc((void**)&litter_dev->Esl        , sizexz*sizeof(double)));
         SafeCudaCall(cudaMalloc((void**)&litter_dev->drainlitter, sizexz*sizeof(double)));
+        
+        SafeCudaCall(cudaMalloc((void**)&litter_dev->Esl_root, procsize*sizeof(double)));
         printf("\t Flow model - allocating litter device memory . . . . . completed! \n");
     }
-    
 
     /* If reach this point, print out info. */
     printf("\t Flow model - device memory . . . . . . . . . . . . . . completed! \n");
@@ -371,6 +374,8 @@ void FreeDeviceMemory(OverlandFlowClass *overland, SubsurfaceFlowClass *subsurfa
             SafeCudaCall(cudaFree(litter->LEsl));
             SafeCudaCall(cudaFree(litter->Esl));
             SafeCudaCall(cudaFree(litter->drainlitter));
+            
+            SafeCudaCall(cudaFree(litter->Esl_root));
         }
     }
 }

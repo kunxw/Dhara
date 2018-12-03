@@ -2,6 +2,7 @@
 #define __SUBSURFACE_H__
 #endif
 
+__global__ void SendFluxDataToGrids(double *data, double *dataroot, int *procmap, int3 globsize);
 
 __global__ void SetUpLinearSystemsSubsurface(
                 double *a3d, double *rhs, double *psinp1m, double *psin, double *thetanp1m, 

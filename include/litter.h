@@ -11,5 +11,5 @@ void LitterStorageModel(TimeForcingClass * &timeforcings, OverlandFlowClass * &o
                        SubsurfaceFlowClass * &subsurface_dev, LitterSnowClass * &litter_dev, int rank, int procsize, int3 globsize, int t, int num_steps);
                        
 void GatherLitterFluxes(ProjectClass *project, VerticalSoilClass *vertsoils, LitterSnowClass *litter_host, 
-                        LitterSnowClass *litter_dev, int rank, int procsize, int3 globsize,
-                        int3 domsize, int2 topolsize, int2 topolindex, MPI_Comm *cartComm);
+                        LitterSnowClass *litter_dev, SubsurfaceFlowClass *subsurface_dev, int rank, int procsize, 
+                        int3 globsize, int3 domsize, int2 topolsize, int2 topolindex, MPI_Comm *cartComm);

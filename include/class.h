@@ -137,7 +137,8 @@
         double *dzlit;       // [m] Thickness of litter layer
         double *zliqsl;      // [m] liquid water content in snow-litter layer
         double *LEsl;        // [W/m^2] Latent Heat from snow-litter layer
-        double *Esl;         // [mm / s] Evaporation from snow-litter layer 
+        double *Esl;         // [mm / s] Evaporation from snow-litter layer, grid
+        double *Esl_root;    // [mm / s] Evaporation from snow-litter layer, single number from canopy
         double *drainlitter; // [m] Water that drains into soil from litter 
         
         double thetals;      // [] Litter porosity Vv/Vt

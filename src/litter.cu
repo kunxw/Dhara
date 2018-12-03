@@ -14,6 +14,7 @@
 #include "../include/cusplib.h"
 #include "../include/devconst.h"
 #include "../include/global.h"
+#include "../include/subsurface.h"
 
 __device__ double maxcomplsm (double a, double b)
 {
@@ -141,32 +142,22 @@ void LitterStorageModel(TimeForcingClass * &timeforcings, OverlandFlowClass * &o
 }
 
 void GatherLitterFluxes(ProjectClass *project, VerticalSoilClass *vertsoils, LitterSnowClass *litter_host, 
-                        LitterSnowClass *litter_dev, int rank, int procsize, int3 globsize,
+                        LitterSnowClass *litter_dev, SubsurfaceFlowClass *subsurface_dev, int rank, int procsize, int3 globsize,
                         int3 domsize, int2 topolsize, int2 topolindex, MPI_Comm *cartComm)
 {
     int isroot = rank == MPI_MASTER_RANK;
+    
+    // gather evap from mlcan to root
+    MPI_Gather(vertsoils->E_sl, 1, MPI_DOUBLE, litter_host->Esl_root, 1, MPI_DOUBLE, 0, *cartComm);
 
-    // MPI_Gather(vertcanopies->TR_can, 1, MPI_DOUBLE, subsurface_host->TR_root, 1, MPI_DOUBLE, 0, *cartComm);
-    // MPI_Gather(vertsoils->ppt_ground, 1, MPI_DOUBLE, subsurface_host->ppt_root, 1, MPI_DOUBLE, 0, *cartComm);
-    // MPI_Gather(vertsoils->E_soil, 1, MPI_DOUBLE, subsurface_host->E_soil_root, 1, MPI_DOUBLE, 0, *cartComm);
-
-    // if (isroot)
-    // {
-        // SafeCudaCall( cudaMemcpy(subsurface_dev->TR_root, subsurface_host->TR_root, 
-                      // procsize*sizeof(double), cudaMemcpyHostToDevice) );
-        // SendFluxDataToGrids<<<TSZ,BSZ>>>(subsurface_dev->TR, subsurface_dev->TR_root,
-                                         // subsurface_dev->procmap, globsize);
-
-        // SafeCudaCall( cudaMemcpy(subsurface_dev->ppt_root, subsurface_host->ppt_root, 
-                      // procsize*sizeof(double), cudaMemcpyHostToDevice) );        
-        // SendFluxDataToGrids<<<TSZ,BSZ>>>(subsurface_dev->ppt_ground, subsurface_dev->ppt_root,
-                                         // subsurface_dev->procmap, globsize);
-
-        // SafeCudaCall( cudaMemcpy(subsurface_dev->E_soil_root, subsurface_host->E_soil_root, 
-                      // procsize*sizeof(double), cudaMemcpyHostToDevice) );        
-        // SendFluxDataToGrids<<<TSZ,BSZ>>>(subsurface_dev->E_soil, subsurface_dev->E_soil_root,
-                                         // subsurface_dev->procmap, globsize);
-        // cudaCheckError("SendFluxDataToGrids");
-    // }
+    if (isroot)
+    {
+        // send evap to grided data for gpu
+        SafeCudaCall( cudaMemcpy(litter_dev->Esl_root, litter_host->Esl_root, 
+                      procsize*sizeof(double), cudaMemcpyHostToDevice) );        
+        SendFluxDataToGrids<<<TSZ,BSZ>>>(litter_dev->Esl, litter_dev->Esl_root,
+                                         subsurface_dev->procmap, globsize);
+        cudaCheckError("SendFluxDataToGrids");
+    }
 
 }
