@@ -130,6 +130,7 @@ void LoadConfigMLCanModel(ProjectClass *project, FileNameClass *files, SwitchCla
     switches->RootHydrauConduct       = GetOptionToInt("ROOT_HYDRAUCONDUCT");
     switches->SoilHeat                = GetOptionToInt("SOIL_HEAT_MODEL");
     switches->LWequation              = GetOptionToInt("LONGWAVE_EQUATION");
+    switches->Litter                  = GetOptionToInt("LITTER_MODEL");
 
     // CONSTANTS . . . . . . . . .
     constants->umoltoWm2   = GetOptionToDouble("UMOL_TO_WM2");
@@ -485,9 +486,11 @@ void ParsingCommandsAndConfigurations(int argc, char **argv, const char * &file_
         mpiobj->global_size.z = NUM_SOIL_LAYERS;
 
         project->saveolf     = GetOptionToInt("SAVE_OVERLAND");
+        project->savelitter  = GetOptionToInt("SAVE_LITTER");
         project->savessf     = GetOptionToInt("SAVE_SUBSURFACE");
         project->savestat    = GetOptionToInt("SAVE_STATISTICS");
         project->olfoutput   = GetOptionToChar("OUTPUT_NAME_OVERLAND");
+        project->litteroutput= GetOptionToChar("OUTPUT_NAME_LITTER");
         project->ssfoutput   = GetOptionToChar("OUTPUT_NAME_SUBSURFACE");
         project->ssf1doutput = GetOptionToChar("OUTPUT_NAME_SUBSURFACE_1D");
         project->statoutput  = GetOptionToChar("OUTPUT_NAME_STATISTICS");
