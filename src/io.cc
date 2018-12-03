@@ -902,6 +902,38 @@ void SaveModelResults(ProjectClass *project, OverlandFlowClass *overland_host,
     }
 }
 
+void SaveLitterResults(ProjectClass *project, LitterSnowClass *litter_host, LitterSnowClass *litter_dev, 
+                        int3 globsize, int timestep)
+{
+    char file2D[64];
+    int time_save = project->saveinterval;
+    int sizex = globsize.x;
+    int sizey = globsize.y;
+    int sizexy = sizex * sizey;
+
+    if ( timestep % time_save == 0 )
+    {
+        // 2D litter model
+        if (project->savelitter)
+        {
+            SafeCudaCall( cudaMemcpy(litter_host->zliqsl, litter_dev->zliqsl,
+                                     sizexy*sizeof(double), cudaMemcpyDeviceToHost) );
+
+            SafeCudaCall( cudaMemcpy(litter_host->drainlitter, litter_dev->drainlitter,
+                                     sizexy*sizeof(double), cudaMemcpyDeviceToHost) );
+
+            snprintf(file2D, sizeof(char) * 64, "%s/%s_%d.nc", project->folderoutput,
+                                                               project->litteroutput,
+                                                               timestep);
+
+            SaveOutput2D(file2D, "litter_water_content", litter_host->zliqsl, NC_DOUBLE, 
+                         sizex, sizey, 0);
+            SaveOutput2D(file2D, "drainlitter", litter_host->drainlitter, NC_DOUBLE, 
+                         sizex, sizey, 1);
+        }
+    }
+}
+
 
 /**
  * @brief      Save MLCan results to netCDF for all processes

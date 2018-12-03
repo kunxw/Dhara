@@ -486,10 +486,19 @@ void RunCoupledFlowModel(TimeForcingClass *timeforcings, OverlandFlowClass *over
             {            
                 // Get mean value in each layers.
                 CopyLayers(subsurface_host, psinp1mp1_cusp, thetanp1mp1_thrust, t, sizexy, sizez);
+                
+                // Get mean value for litter stuff?
+                // if(switches->Litter) {
+                    // CopyLitterLayer()?
+                // }
             }
 
             // Save 2D and 3D results.
             SaveModelResults(project, overland_host, overland_dev, subsurface_host, subsurface_dev, globsize, t);
+            
+            if(switches->Litter) {
+                SaveLitterResults(project, litter_host, litter_dev, globsize, t);
+            }
         }
     }
 

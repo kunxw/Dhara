@@ -6,6 +6,7 @@
         const char *name;
         const char *folderoutput;
         const char *mlcanoutput;
+        const char *litteroutput;
         const char *olfoutput;
         const char *ssfoutput;
         const char *ssf1doutput;
@@ -15,6 +16,7 @@
         int numberofplants;
         int planttype;
         int savemlcan;
+        int savelitter;
         int saveolf;
         int savessf;
         int savestat;

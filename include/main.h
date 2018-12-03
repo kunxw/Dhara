@@ -160,6 +160,9 @@ void SaveModelResults(ProjectClass *project, OverlandFlowClass *overland_host,
                       OverlandFlowClass *overland_dev, SubsurfaceFlowClass *subsurface_host,
                       SubsurfaceFlowClass *subsurface_dev, int3 globsize, int t);
 
+void SaveLitterResults(ProjectClass *project, LitterSnowClass *litter_host, LitterSnowClass *litter_dev, 
+                        int3 globsize, int timestep);                      
+
 void RunCoupledFlowModel(TimeForcingClass *timeforcings, OverlandFlowClass *overland_host,
                          OverlandFlowClass *overland_dev, SubsurfaceFlowClass *subsurface_host,
                          SubsurfaceFlowClass *subsurface_dev, LitterSnowClass *litter_host, 
