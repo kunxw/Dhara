@@ -115,6 +115,8 @@ void LoadForcingData(FileNameClass *files, CanopyClass *canopies, TimeForcingCla
 void LoadFlowModelConfig(ProjectClass *project, FileNameClass *files, OverlandFlowClass *overland, 
                         SubsurfaceFlowClass *subsurface, LitterSnowClass *litter, SwitchClass *switches);
 
+void LoadLitterDepth(FileNameClass *files, LitterSnowClass *litter, int rank, int procsize);
+
 void LoadTopography(FileNameClass *files, OverlandFlowClass *overland, int rank, int procsize);
 
 
@@ -123,7 +125,7 @@ void GetFileInfo(const char *file_name, const char *var_name, int ndims, int *di
 
 void SetFlowModelConditions(TimeForcingClass *timeforcings, FileNameClass *files, 
                             OverlandFlowClass *overland, SubsurfaceFlowClass * &subsurface, 
-                            LitterSnowClass * &litter, SwitchClass *switches,
+                            LitterSnowClass * litter, SwitchClass *switches,
                              int num_steps, int rank, int procsize, int3 globsize);
 
 void SetMPIGPUMapping(mpiClass *mpiobj, SubsurfaceFlowClass * &subsurface, int procsize,

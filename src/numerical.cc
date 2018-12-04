@@ -624,6 +624,9 @@ void NumericalModelKernels(int rank, int procsize, FileNameClass *files, Project
     if (rank == MPI_MASTER_RANK)
     {
         AllocateMemoryFlowModel(timeforcings, olf_h, olf_d, ssf_h, ssf_d, litter_h, litter_d, switches, procsize, globsize, num_steps);
+        if(switches->Litter) {
+            LoadLitterDepth(files, litter_h, rank, procsize);
+        }
         LoadTopography(files, olf_h, rank, procsize);
         LoadFlowModelConfig(project, files, olf_h, ssf_h, litter_h, switches);
         SetFlowModelConditions(timeforcings, files, olf_h, ssf_h, litter_h, switches, num_steps, rank, procsize,

@@ -30,3 +30,9 @@ __constant__ double hn    = 0.0;
 __constant__ double hs    = 0.0;
 __constant__ double hw    = 0.0;
 __constant__ double he    = 0.0;
+
+//  Litter Snow Model
+__constant__ double thetals = 0.9;
+__constant__ double thetafc = 0.025;
+__constant__ double km      = 0.0001;
+__constant__ double bm      = 0.1;

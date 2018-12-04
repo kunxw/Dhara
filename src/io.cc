@@ -272,6 +272,15 @@ void LoadFlowModelConfig(ProjectClass *project, FileNameClass *files, OverlandFl
     overland->dt    = GetOptionToDouble("TIME_STEP_DATA");
     overland->dx    = GetOptionToDouble("GRID_SIZE.DX");
     overland->dy    = GetOptionToDouble("GRID_SIZE.DY");
+    
+    // LITTER
+    if(switches->Litter) {
+        litter->thetals = GetOptionToDouble("POROSITY");
+        litter->thetafc = GetOptionToDouble("FIELD_CAPACITY");
+        litter->km      = GetOptionToDouble("KM");
+        litter->bm      = GetOptionToDouble("BM");
+        litter->dt      = GetOptionToDouble("TIME_STEP_DATA");
+    }
 }
 
 
@@ -478,6 +487,7 @@ void ParsingCommandsAndConfigurations(int argc, char **argv, const char * &file_
     if (rank == MPI_MASTER_RANK)
     {
         files->topography = GetOptionToChar("FILE_TOPOGRAHY");
+        files->litter_depth = GetOptionToChar("FILE_LITTER_DEPTH");
         GetFileInfo(files->topography, "Topography", 2, dim_topography);
 
         // Get domainSize then estimate size of global domain.
@@ -589,6 +599,24 @@ void LoadForcingData(FileNameClass *files, CanopyClass *canopies, TimeForcingCla
 
 
 /**
+ * @brief      To load litter depth info from NetCDF file.
+ *             
+ *
+ * @param      files     NetCDF file
+ * @param      litter    LitterSnow model class
+ * @param[in]  rank      Global rank of the current MPI process
+ * @param[in]  procsize  Total number of MPI processes available
+ */
+void LoadLitterDepth(FileNameClass *files, LitterSnowClass *litter, int rank, int procsize)
+{
+    printf("\nLOADING LITTER DEPTH \n");
+    printf("-------------------- \n");
+    LoadFileNetCDF(files->litter_depth, "Depth", litter->dzlit);
+    printf("\t Litter model . . . . completed! \n");
+}
+
+
+/*
  * @brief      To load topography info from NetCDF file.
  *             Topography is only used for flow modling in GPU device through master process.
  *
@@ -604,7 +632,6 @@ void LoadTopography(FileNameClass *files, OverlandFlowClass *overland, int rank,
     LoadFileNetCDF(files->topography, "Topography", overland->ztopo);
     printf("\t Flow model . . . . . completed! \n");
 }
-
 
 
 /**

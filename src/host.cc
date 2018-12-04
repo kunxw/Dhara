@@ -65,6 +65,39 @@ void SetInitialConditionsHost(TimeForcingClass *timeforcings, FileNameClass *fil
 }
 
 
+/**
+ * @brief      Set the initial conditions of litter in host memory
+ *
+ * @param      forcings    Class including forcings info
+ * @param      overland    Overland flow class
+ * @param      subsurface  Subsurface flow class
+ * @param[in]  num_steps   The number of timesteps
+ * @param[in]  rank        Global rank of the current MPI process
+ * @param[in]  procsize    Total number of MPI processes available
+ * @param[in]  globsize    Size of the global domain
+ * @param      cartComm    Carthesian MPI communicator
+ */
+void SetInitialConditionsLitter(LitterSnowClass *litter, SubsurfaceFlowClass * &subsurface, int3 globsize)
+{
+    // Get sizes of domain
+    int sizez   = globsize.z;
+    int sizexy  = globsize.x * globsize.y;    
+
+    printf("\nSETTING UP INITIAL CONDITIONS IN HOST FOR LITTER \n");
+    printf("--------------------------------------- \n");
+
+    // Litter model inital conditionsl
+    for (int i = 0; i < sizexy; i++)
+    {
+        litter->zliqsl[i] = subsurface->thetan[i] * litter->dzlit[i];  // same as top layer of soil
+        litter->LEsl[i] = 0.;
+        litter->Esl[i]  = 0.;
+        litter->drainlitter[i] = 0.;
+    }
+
+    printf("\t Litter model - Initialization . . . . . . . . . . . . .completed! \n");
+}
+
 
 /**
  * @brief      Set the boundary conditions host in host memory
@@ -179,15 +212,17 @@ void SetBoundaryConditionsHost(TimeForcingClass *timeforcings, FileNameClass *fi
  */
 void SetFlowModelConditions(TimeForcingClass *timeforcings, FileNameClass *files,
                             OverlandFlowClass *overland, SubsurfaceFlowClass * &subsurface,
-                            LitterSnowClass * &litter, SwitchClass * switches,
+                            LitterSnowClass * litter, SwitchClass * switches,
                              int num_steps, int rank, int procsize, int3 globsize)
 {
     SetInitialConditionsHost(timeforcings, files, overland, subsurface, num_steps, rank, procsize,
                              globsize);
+    if(switches->Litter) {
+        SetInitialConditionsLitter(litter, subsurface, globsize);
+    }
     SetBoundaryConditionsHost(timeforcings, files, overland, subsurface, num_steps, rank, procsize,
                               globsize);
 }
-
 
 
 /**

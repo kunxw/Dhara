@@ -64,6 +64,7 @@
         public:
         const char *config;
         const char *topography;     // Topography filename
+        const char *litter_depth;     // Litter depth filename
         const char *forcings;       // Forcings filename
         const char *plants;
         const char *ovl_output;

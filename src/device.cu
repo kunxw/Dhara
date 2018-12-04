@@ -460,6 +460,11 @@ void RunCoupledFlowModel(TimeForcingClass *timeforcings, OverlandFlowClass *over
         // Gather transpiration to master
         GatherFluxesDomain(project, vertcanopies, vertsoils, subsurface_host, subsurface_dev, rank,
                            procsize, globsize, domsize, topolsize, topolindex, cartComm);
+        
+        if(switches->Litter){
+            GatherLitterFluxes(project, vertsoils, litter_host, litter_dev, subsurface_dev, rank, 
+                            procsize, globsize, domsize, topolsize, topolindex, cartComm);
+        }
 
         MPI_Barrier(*cartComm);              // Synchronize all MPIs
 
