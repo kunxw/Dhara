@@ -121,11 +121,11 @@ void AllocateMemoryFlowModel(TimeForcingClass *timeforcings,
     
     /* Optional modules*/
     if (switches->Litter) {
-        litter_host->dzlit       = new double[sizexz];  
-        litter_host->zliqsl      = new double[sizexz];
-        litter_host->LEsl        = new double[sizexz];
-        litter_host->Esl         = new double[sizexz];
-        litter_host->drainlitter = new double[sizexz];
+        litter_host->dzlit       = new double[sizexy];  
+        litter_host->zliqsl      = new double[sizexy];
+        litter_host->LEsl        = new double[sizexy];
+        litter_host->Esl         = new double[sizexy];
+        litter_host->drainlitter = new double[sizexy];
         
         litter_host->Esl_root= new double[procsize];
         printf("\t Flow model - allocating litter host memory . . . . . . completed! \n");
@@ -204,11 +204,11 @@ void AllocateMemoryFlowModel(TimeForcingClass *timeforcings,
     SafeCudaCall(cudaMalloc((void**)&subsurface_dev->thetaout   , sizexyz*sizeof(double)));
     
     if (switches->Litter) {
-        SafeCudaCall(cudaMalloc((void**)&litter_dev->dzlit      , sizeyz*sizeof(double)));
-        SafeCudaCall(cudaMalloc((void**)&litter_dev->zliqsl     , sizexz*sizeof(double)));
-        SafeCudaCall(cudaMalloc((void**)&litter_dev->LEsl       , sizexz*sizeof(double)));
-        SafeCudaCall(cudaMalloc((void**)&litter_dev->Esl        , sizexz*sizeof(double)));
-        SafeCudaCall(cudaMalloc((void**)&litter_dev->drainlitter, sizexz*sizeof(double)));
+        SafeCudaCall(cudaMalloc((void**)&litter_dev->dzlit      , sizexy*sizeof(double)));
+        SafeCudaCall(cudaMalloc((void**)&litter_dev->zliqsl     , sizexy*sizeof(double)));
+        SafeCudaCall(cudaMalloc((void**)&litter_dev->LEsl       , sizexy*sizeof(double)));
+        SafeCudaCall(cudaMalloc((void**)&litter_dev->Esl        , sizexy*sizeof(double)));
+        SafeCudaCall(cudaMalloc((void**)&litter_dev->drainlitter, sizexy*sizeof(double)));
         
         SafeCudaCall(cudaMalloc((void**)&litter_dev->Esl_root, procsize*sizeof(double)));
         printf("\t Flow model - allocating litter device memory . . . . . completed! \n");

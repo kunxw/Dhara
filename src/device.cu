@@ -233,7 +233,7 @@ void CopyDataToDevice(ProjectClass *project, TimeForcingClass *timeforcings,
     int sizeyz  = globsize.y * globsize.z;
     int sizexyz = globsize.x * globsize.y * globsize.z;
 
-    printf("\nCOPYING DATA TO DEVICE");
+    printf("\nCOPYING DATA TO DEVICE\n");
 
     ///////////////////////////////////////
     // 2D overland flow                  //
@@ -253,6 +253,8 @@ void CopyDataToDevice(ProjectClass *project, TimeForcingClass *timeforcings,
 
     SafeCudaCall( cudaMemcpy(overland_dev->ph, overland_host->ph,
             sizexy*sizeof(double), cudaMemcpyHostToDevice) );
+            
+    printf("Overland . . . . . . . . . . . . . . . . .completed! \n");
 
     ///////////////////////////////////////
     // 3D subsurface flow                //
@@ -331,6 +333,8 @@ void CopyDataToDevice(ProjectClass *project, TimeForcingClass *timeforcings,
 
     SafeCudaCall( cudaMemcpy(subsurface_dev->psinp1m, subsurface_dev->psin,
             sizexyz*sizeof(double), cudaMemcpyDeviceToDevice) );
+    
+    printf(" Subsurface  . . . . . . . . . . . . . . .completed! \n");
 
     ///////////////////////////////////////
     // Litters Snow model                //
@@ -347,9 +351,10 @@ void CopyDataToDevice(ProjectClass *project, TimeForcingClass *timeforcings,
             sizexy*sizeof(double), cudaMemcpyHostToDevice) );
         SafeCudaCall( cudaMemcpy(litter_dev->drainlitter, litter_host->drainlitter,
             sizexy*sizeof(double), cudaMemcpyHostToDevice) );
+        printf("Litter . . . . . . . . . . . . . . . . . .completed! \n");
     }
     // If reach this point, print out info
-    printf(" . . . . . . . . . . . . . . . . . . . . .completed! \n");
+    printf("All  . . . . . . . . . . . . . . . . . . .completed! \n");
     printf("------------------------- \n");
 
 }
