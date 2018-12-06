@@ -485,8 +485,14 @@ void RunCoupledFlowModel(TimeForcingClass *timeforcings, OverlandFlowClass *over
             
             // litter water storage
             if(switches->Litter) {
+                // LitterStorageModel_test(timeforcings, overland_host, overland_dev, subsurface_host, subsurface_dev, litter_host, litter_dev, rank, 
+                               // procsize, globsize, t, num_steps);    // what is rank and stuff for?
                 LitterStorageModel(timeforcings, overland_dev, subsurface_dev, litter_dev, rank, 
                                procsize, globsize, t, num_steps);    // what is rank and stuff for?
+                
+                // cout << "litter constants" << endl;
+                // cout << litter_host->thetals << endl;
+                // cout << litter_host->thetafc << endl << endl;
             }
             
             OverlandFlowModel(timeforcings, overland_dev, subsurface_dev, a2d_cusp, we_out_cusp,

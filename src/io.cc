@@ -275,7 +275,7 @@ void LoadFlowModelConfig(ProjectClass *project, FileNameClass *files, OverlandFl
     
     // LITTER
     if(switches->Litter) {
-        litter->thetals = GetOptionToDouble("POROSITY");
+        litter->thetals = GetOptionToDouble("LITTER_POROSITY");
         litter->thetafc = GetOptionToDouble("FIELD_CAPACITY");
         litter->km      = GetOptionToDouble("KM");
         litter->bm      = GetOptionToDouble("BM");
@@ -892,6 +892,8 @@ void SaveModelResults(ProjectClass *project, OverlandFlowClass *overland_host,
     int sizez = globsize.z;
     int sizexy = sizex * sizey;
     int sizexyz = sizex * sizey * sizez;
+    int3 globsize2D = globsize;
+    globsize2D.z = 1;
 
     if ( timestep % time_save == 0 )
     {
@@ -908,10 +910,12 @@ void SaveModelResults(ProjectClass *project, OverlandFlowClass *overland_host,
                                                                project->olfoutput,
                                                                timestep);
 
-            SaveOutput2D(file2D, "water_elevation", overland_host->waterelev, NC_DOUBLE, 
-                         sizex, sizey, 0);
-            SaveOutput2D(file2D, "water_depth", overland_host->waterdepth, NC_DOUBLE, 
-                         sizex, sizey, 1);
+            // SaveOutput2D(file2D, "water_elevation", overland_host->waterelev, NC_DOUBLE, 
+                         // sizex, sizey, 0);
+            // SaveOutput2D(file2D, "water_depth", overland_host->waterdepth, NC_DOUBLE, 
+                         // sizex, sizey, 1);
+            SaveOutput3D(file2D, "water_elevation", overland_host->waterelev, NC_DOUBLE, globsize2D, 0);
+            SaveOutput3D(file2D, "water_depth", overland_host->waterdepth, NC_DOUBLE, globsize2D, 1);
         }
 
         // 3D subsurface flow
@@ -940,6 +944,8 @@ void SaveLitterResults(ProjectClass *project, LitterSnowClass *litter_host, Litt
     int sizex = globsize.x;
     int sizey = globsize.y;
     int sizexy = sizex * sizey;
+    int3 globsize2D = globsize;
+    globsize2D.z = 1;
 
     if ( timestep % time_save == 0 )
     {
@@ -951,15 +957,30 @@ void SaveLitterResults(ProjectClass *project, LitterSnowClass *litter_host, Litt
 
             SafeCudaCall( cudaMemcpy(litter_host->drainlitter, litter_dev->drainlitter,
                                      sizexy*sizeof(double), cudaMemcpyDeviceToHost) );
+                                     
+            SafeCudaCall( cudaMemcpy(litter_host->dzlit, litter_dev->dzlit,
+                                     sizexy*sizeof(double), cudaMemcpyDeviceToHost) );
+
+            SafeCudaCall( cudaMemcpy(litter_host->Esl, litter_dev->Esl,
+                                     sizexy*sizeof(double), cudaMemcpyDeviceToHost) );                         
 
             snprintf(file2D, sizeof(char) * 64, "%s/%s_%d.nc", project->folderoutput,
                                                                project->litteroutput,
                                                                timestep);
 
-            SaveOutput2D(file2D, "litter_water_content", litter_host->zliqsl, NC_DOUBLE, 
-                         sizex, sizey, 0);
-            SaveOutput2D(file2D, "drainlitter", litter_host->drainlitter, NC_DOUBLE, 
-                         sizex, sizey, 1);
+            
+            // SaveOutput2D(file2D, "drainlitter", litter_host->drainlitter, NC_DOUBLE, 
+                         // sizex, sizey, 0);
+            // SaveOutput2D(file2D, "litter_water_content", litter_host->zliqsl, NC_DOUBLE, 
+                         // sizex, sizey, 1);
+            // SaveOutput2D(file2D, "litter_water_content2", litter_host->zliqsl, NC_DOUBLE, 
+                         // sizex, sizey, 1);
+            // SaveOutput2D(file2D, "litter_water_content3", litter_host->zliqsl, NC_DOUBLE, 
+                         // sizex, sizey, 1);
+            SaveOutput3D(file2D, "litter_water_content", litter_host->zliqsl, NC_DOUBLE, globsize2D, 0);
+            SaveOutput3D(file2D, "drainlitter", litter_host->drainlitter, NC_DOUBLE, globsize2D, 1);
+            SaveOutput3D(file2D, "dzlit", litter_host->dzlit, NC_DOUBLE, globsize2D, 1);
+            SaveOutput3D(file2D, "Esl", litter_host->Esl, NC_DOUBLE, globsize2D, 1);
         }
     }
 }

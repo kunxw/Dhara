@@ -34,7 +34,7 @@ __device__ double maxcomplsm (double a, double b)
  * @param      drainlitter  [m] amount of water drained
  * @param[in]  size        The size
  */
-__global__ void LitterDrainage(double *zliqsl, double *ph, double *dzlit, double *drainlitter, double thetals, double thetafc, double km, double bm, double dt, int size) 
+__global__ void LitterDrainage(double *zliqsl, double *ph, double *dzlit, double *drainlitter, double thetalsNA, double thetafcNA, double kmNA, double bmNA, double dtNA, int size) 
 {
     // iv. Computation of Drainage
     // Clitter = zliqsl;
@@ -58,13 +58,12 @@ __global__ void LitterDrainage(double *zliqsl, double *ph, double *dzlit, double
             drainlitter[tid] = (km*exp(bm*(litter_water*1000.))*dt)/1000.;    // [m] Water that drains into soil from litter, equation is for mm, convert litter_water to mm first, then back to m           
         }
         
-        // adjust ponding
-        if(all_water > litter_water) {
-            ph[tid] = all_water - litter_water;
-        } else {
-            ph[tid] = 0;
-        }
+        // adjust litter water
+        zliqsl[tid] = litter_water;
         
+        // adjust ponding
+        ph[tid] = maxcomplsm((all_water - litter_water), 0.0);;
+
         // Update threads if vector is long . . .
         tid += blockDim.x * gridDim.x;
     }   
@@ -83,16 +82,23 @@ __global__ void LitterDrainage(double *zliqsl, double *ph, double *dzlit, double
  * @param      drainlitter  [m] amount of water drained
  * @param[in]  size        The size
  */
-__global__ void LitterWaterBalance(double *zliqsl, double *ph,  double *dzlit,  double *ppt, double *drainlitter, double *Esl, double thetals, double dt, int size)
+__global__ void LitterWaterBalance(double *zliqsl, double *ph,  double *dzlit,  double *ppt, double *drainlitter, double *Esl, double thetalsNA, double dtNA, int size)
 {
     int tid = threadIdx.x + blockIdx.x * blockDim.x;
     while (tid < size)
     {
-        double zliqsl_new = zliqsl[tid] + (ppt[tid] - drainlitter[tid] - Esl[tid] * sec_p_mm2dt_p_m * dt);  // [m liq]    
+        double zliqsl_new = zliqsl[tid] + (ppt[tid]/1000. - drainlitter[tid] - Esl[tid] * sec_p_mm2dt_p_m * dt);  // [m liq]    
         if (zliqsl_new < 0) {   // check if negative water content
-            drainlitter[tid] = maxcomplsm((drainlitter[tid] - (0 - zliqsl_new)), 0.0); // [m liq]
-            zliqsl_new = 0;   // [m liq]
-        }
+            // get water from ponding pool
+            double ph_new = maxcomplsm((ph[tid] + zliqsl_new), 0.0);
+            zliqsl_new = zliqsl_new + (ph[tid] - ph_new);
+            ph[tid] = ph_new;
+            
+            if (zliqsl_new < 0) {   // get water from drainage
+                drainlitter[tid] = maxcomplsm((drainlitter[tid] - (0 - zliqsl_new)), 0.0); // [m liq]
+                zliqsl_new = 0;   // [m liq]
+            }
+        } 
         if ((zliqsl_new / dzlit[tid]) > thetals) {   // check if over saturated
             ph[tid] = ph[tid]+(zliqsl_new - dzlit[tid] * thetals);   //add extras to ponding
             zliqsl_new = dzlit[tid] * thetals;   // [m liq]
@@ -107,8 +113,59 @@ __global__ void LitterWaterBalance(double *zliqsl, double *ph,  double *dzlit,  
     }
 }
 
+/**
+ * @brief      { rebalance water in litter and ponding }
+ *
+ * @param      zliqsl       [m] current water storage in litter
+ * @param      ph           [m] water depth of ponding in overland
+ * @param      dzlit        [m] depth of litter layer
+ * @param      thetals      [] porosity
+ * @param      ppt          [m] precip reaching the ground
+ * @param      Esl          [mm/s] evaporation
+ * @param      thetafc      [] field capacity
+ * @param      drainlitter  [m] amount of water drained
+ * @param[in]  size        The size
+ */
+__global__ void LitterTest(double *zliqsl, double *ph,  double *dzlit,  double *ppt, double *drainlitter, double *Esl, double thetalsNA, double dtNA, int size)
+{
+    int tid = threadIdx.x + blockIdx.x * blockDim.x;
+    while (tid < size)
+    {
+        ph[tid] = ph[tid] + ppt[tid]/1000.;
+        
+        drainlitter[tid] = thetals;
+        zliqsl[tid] = ph[tid];
+        
+        // Update threads if vector is long . . .
+        tid += blockDim.x * gridDim.x;
+    }
+}
+
 void LitterStorageModel(TimeForcingClass * &timeforcings, OverlandFlowClass * &overland_dev,
-                       SubsurfaceFlowClass * &subsurface_dev, LitterSnowClass * &litter_dev, 
+                       SubsurfaceFlowClass * &subsurface_dev, LitterSnowClass * &litter_dev, int rank, int procsize, int3 globsize, int t, int num_steps)
+{
+    int sizexy  = globsize.x * globsize.y;
+    
+    // get drainage amount and resulting ponding 
+    LitterDrainage<<<TSZ,BSZ>>>(litter_dev->zliqsl, overland_dev->waterdepth, litter_dev->dzlit, 
+                                litter_dev->drainlitter, litter_dev->thetals, litter_dev->thetafc, 
+                                litter_dev->km, litter_dev->bm, litter_dev->dt, sizexy);    
+    cudaCheckError("LitterDrainage");
+    
+    // vi. Compute water balance
+    LitterWaterBalance<<<TSZ,BSZ>>>(litter_dev->zliqsl, overland_dev->waterdepth, 
+                                    litter_dev->dzlit, subsurface_dev->ppt_ground, litter_dev->drainlitter, 
+                                    litter_dev->Esl, litter_dev->thetals, litter_dev->dt, sizexy);
+    cudaCheckError("LitterWaterBalance");
+
+    SafeCudaCall( cudaMemcpy(overland_dev->ph, overland_dev->waterdepth, sizexy*sizeof(double),
+            cudaMemcpyDeviceToDevice) );                       
+}                       
+
+void LitterStorageModel_test(TimeForcingClass * &timeforcings, OverlandFlowClass * &overland_host,
+                        OverlandFlowClass * &overland_dev,
+                       SubsurfaceFlowClass * &subsurface_host, SubsurfaceFlowClass * &subsurface_dev, LitterSnowClass * &litter_host, 
+                       LitterSnowClass * &litter_dev, 
                        int rank, int procsize, int3 globsize, int t, int num_steps) 
 {
     int sizexy  = globsize.x * globsize.y;
@@ -131,11 +188,57 @@ void LitterStorageModel(TimeForcingClass * &timeforcings, OverlandFlowClass * &o
                                 litter_dev->km, litter_dev->bm, litter_dev->dt, sizexy);    
     cudaCheckError("LitterDrainage");
     
+    // LitterTest<<<TSZ,BSZ>>>(litter_dev->zliqsl, overland_dev->waterdepth, 
+                                    // litter_dev->dzlit, subsurface_dev->ppt_ground, litter_dev->drainlitter, 
+                                    // litter_dev->Esl, litter_dev->thetals, litter_dev->dt, sizexy);
+    // cudaCheckError("LitterTest");
+    
+    // ***** test*************************
+    SafeCudaCall( cudaMemcpy(litter_host->zliqsl, litter_dev->zliqsl,
+                             sizexy*sizeof(double), cudaMemcpyDeviceToHost) );
+
+    SafeCudaCall( cudaMemcpy(litter_host->drainlitter, litter_dev->drainlitter,
+                             sizexy*sizeof(double), cudaMemcpyDeviceToHost) );
+
+    SafeCudaCall( cudaMemcpy(overland_host->waterdepth, overland_dev->waterdepth,
+                             sizexy*sizeof(double), cudaMemcpyDeviceToHost) );
+                             
+    
+    cout << "test after litter drainage" << endl;
+    cout << "zliqsl: " << litter_host->zliqsl[0] << endl;
+    cout << "drainlitter: " << litter_host->drainlitter[0] << endl;
+    cout << "waterdepth: " << overland_host->waterdepth[0] << endl;
+    
+    // ***************
+    
     // vi. Compute water balance
     LitterWaterBalance<<<TSZ,BSZ>>>(litter_dev->zliqsl, overland_dev->waterdepth, 
                                     litter_dev->dzlit, subsurface_dev->ppt_ground, litter_dev->drainlitter, 
                                     litter_dev->Esl, litter_dev->thetals, litter_dev->dt, sizexy);
     cudaCheckError("LitterWaterBalance");
+    
+    SafeCudaCall( cudaMemcpy(litter_host->zliqsl, litter_dev->zliqsl,
+                             sizexy*sizeof(double), cudaMemcpyDeviceToHost) );
+
+    SafeCudaCall( cudaMemcpy(litter_host->drainlitter, litter_dev->drainlitter,
+                             sizexy*sizeof(double), cudaMemcpyDeviceToHost) );
+
+    SafeCudaCall( cudaMemcpy(overland_host->waterdepth, overland_dev->waterdepth,
+                             sizexy*sizeof(double), cudaMemcpyDeviceToHost) );
+    
+     SafeCudaCall( cudaMemcpy(subsurface_host->ppt_ground, subsurface_dev->ppt_ground,
+                             sizexy*sizeof(double), cudaMemcpyDeviceToHost) );
+                             
+    cout << "test after litter water balance" << endl;
+    cout << "zliqsl: " << litter_host->zliqsl[0] << endl;
+    cout << "drainlitter: " << litter_host->drainlitter[0] << endl;
+    cout << "waterdepth: " << overland_host->waterdepth[0] << endl;
+    cout << "ppt_ground: " << subsurface_host->ppt_ground[0] << endl;
+    
+    // LitterTest<<<TSZ,BSZ>>>(litter_dev->zliqsl, overland_dev->waterdepth, 
+                                    // litter_dev->dzlit, subsurface_dev->ppt_ground, litter_dev->drainlitter, 
+                                    // litter_dev->Esl, litter_dev->thetals, litter_dev->dt, sizexy);
+    // cudaCheckError("LitterTest");
 
     SafeCudaCall( cudaMemcpy(overland_dev->ph, overland_dev->waterdepth, sizexy*sizeof(double),
             cudaMemcpyDeviceToDevice) );
