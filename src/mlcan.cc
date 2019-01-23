@@ -2452,7 +2452,8 @@ void CanopyModel(ProjectClass *project, SwitchClass *Switches, ConstantClass *co
     *vertcanopies->TR_can    = TR_can;
     *vertcanopies->Rnrad_can = Rnrad_can;
     //*vertsoils->E_soil       = max(*vertcanopies->LE_can/constants->Lv_g, 0.0); // Soil evaporation [mm/s]=[g/m^2/s]
-    *vertsoils->E_soil       = *vertcanopies->LE_can/constants->Lv_g; // Soil evaporation (positive) or condensation (negative) [mm/s]=[g/m^2/s]
+    // *vertsoils->E_soil       = *vertcanopies->LE_can/constants->Lv_g; 
+    *vertsoils->E_soil = *vertsoils->LE_soil / constants->Lv_g; // Soil evaporation (positive) or condensation (negative) [mm/s]=[g/m^2/s]
 
     outmlcan->An_can[t]      = An_can;
     outmlcan->LE_can[t]      = LE_can;
